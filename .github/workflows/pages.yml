@@ -1,0 +1,27 @@
+name: Publish founder fixture
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.publish.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/configure-pages@v5
+      - run: mkdir dist && git archive HEAD -- . ":(exclude).github" ":(exclude).gitignore" ":(exclude)README.md" | tar -x -C dist
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: ./dist
+      - uses: actions/deploy-pages@v4
+        id: publish
